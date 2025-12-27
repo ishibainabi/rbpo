@@ -1,0 +1,36 @@
+name: Build (PR to main)
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: maven:3.9.12-eclipse-temurin-21
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make mvnw executable (if present)
+        run: |
+          if [ -f "./mvnw" ]; then
+            chmod +x ./mvnw
+          fi
+
+      - name: Build, test, package
+        run: |
+          if [ -f "./mvnw" ]; then
+            ./mvnw -B clean test package
+          else
+            mvn -B clean test package
+          fi
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-artifacts
+          path: ./target/*.jar
